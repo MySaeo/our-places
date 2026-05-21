@@ -512,6 +512,22 @@
 
 <button class="fab" id="fab" aria-label="Add place">+</button>
 
+<!-- Lock screen -->
+<div class="modal-backdrop" id="lock-modal" style="display: flex; background: var(--bg);">
+  <div class="modal" style="border-radius: 20px; max-width: 360px; margin: auto; padding: 32px 24px;">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="font-size: 48px; margin-bottom: 12px;">🔐</div>
+      <div class="modal-title" style="margin-bottom: 8px;">Our places</div>
+      <div style="font-size: 13px; color: var(--ink-soft);">비밀번호를 입력해주세요</div>
+    </div>
+    <div class="field">
+      <input type="password" id="lock-input" placeholder="••••••••" autocomplete="off">
+    </div>
+    <div id="lock-error" style="display: none; font-size: 13px; color: #dc2626; text-align: center; margin-bottom: 12px;">비밀번호가 틀렸어요</div>
+    <button class="btn btn-primary" id="lock-submit" style="width: 100%;">열기</button>
+  </div>
+</div>
+
 <!-- Add/Edit Modal -->
 <div class="modal-backdrop" id="form-modal">
   <div class="modal">
@@ -595,6 +611,15 @@ const FIREBASE_CONFIG = {
 // Optional: change this to anything you and your friend agree on.
 // Acts as a simple shared "room" — both must use the same value.
 const ROOM_ID = "our-places";
+
+// ============================================================
+// 🔐 PASSWORD — 비밀번호를 여기에 입력하세요
+// ============================================================
+// 친구분과 둘만 아는 비밀번호를 아래 따옴표 사이에 입력하세요.
+// 예: const SHARED_PASSWORD = "mySecret123";
+// ============================================================
+const SHARED_PASSWORD = "@tvxq1226";
+// ============================================================
 // ============================================================
 
 const DEFAULT_CATEGORIES = ['Food', 'Tour', 'Cafe', 'Shopping', 'Nature'];
@@ -975,10 +1000,53 @@ document.querySelectorAll('.modal-backdrop').forEach(bd => {
   });
 });
 
+// ---------- Lock screen ----------
+function checkUnlock() {
+  // 비밀번호가 기본값이면 잠금 화면 안 띄움 (개발자가 아직 설정 안 한 경우)
+  const isDefault = SHARED_PASSWORD === "이곳에-비밀번호를-입력하세요" || SHARED_PASSWORD === "";
+  if (isDefault) {
+    $('lock-modal').style.display = 'none';
+    return true;
+  }
+
+  // 이미 비밀번호 입력한 적 있는지 확인
+  const saved = sessionStorage.getItem('places_unlocked');
+  if (saved === SHARED_PASSWORD) {
+    $('lock-modal').style.display = 'none';
+    return true;
+  }
+
+  // 잠금 화면 표시
+  $('lock-modal').style.display = 'flex';
+  setTimeout(() => $('lock-input').focus(), 100);
+  return false;
+}
+
+function tryUnlock() {
+  const input = $('lock-input').value;
+  if (input === SHARED_PASSWORD) {
+    sessionStorage.setItem('places_unlocked', SHARED_PASSWORD);
+    $('lock-modal').style.display = 'none';
+    $('lock-error').style.display = 'none';
+    // 비밀번호 확인 후 Firebase 시작
+    const usingFirebase = initFirebase();
+    if (!usingFirebase) renderAll();
+  } else {
+    $('lock-error').style.display = 'block';
+    $('lock-input').value = '';
+    $('lock-input').focus();
+  }
+}
+
+$('lock-submit').addEventListener('click', tryUnlock);
+$('lock-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+
 // Init
-const usingFirebase = initFirebase();
-if (!usingFirebase) {
-  renderAll();
+if (checkUnlock()) {
+  const usingFirebase = initFirebase();
+  if (!usingFirebase) {
+    renderAll();
+  }
 }
 </script>
 </body>
