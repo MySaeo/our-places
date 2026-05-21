@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Places">
+<title>Our Places</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📍%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f5f1e8'/%3E%3Ctext y='.9em' font-size='80' x='10'%3E📍%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #f5f1e8;
+    --bg-card: #ffffff;
+    --bg-soft: #ebe5d5;
+    --ink: #2a2520;
+    --ink-soft: #6b6359;
+    --ink-faint: #a59c8e;
+    --accent: #c2410c;
+    --accent-soft: #fef3e7;
+    --success: #166534;
+    --success-soft: #dcfce7;
+    --line: rgba(42, 37, 32, 0.08);
+    --line-strong: rgba(42, 37, 32, 0.18);
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(42, 37, 32, 0.04), 0 4px 12px rgba(42, 37, 32, 0.04);
+  }
+
+  html, body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: contain;
+  }
+
+  body {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(env(safe-area-inset-bottom) + 80px) env(safe-area-inset-left);
+  }
+
+  /* Header */
+  header {
+    padding: 24px 20px 16px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 30px;
+    letter-spacing: -0.02em;
+    font-style: italic;
+  }
+
+  .stats {
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sync-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ink-faint);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .sync-dot.connected { background: #16a34a; }
+  .sync-dot.error { background: #dc2626; }
+
+  /* Filters */
+  .filters {
+    padding: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 2px;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+
+  .chip {
+    flex-shrink: 0;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--line-strong);
+    background: var(--bg-card);
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .chip:active { transform: scale(0.96); }
+  .chip.active {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+  .chip-icon {
+    background: transparent;
+    border: 1px dashed var(--line-strong);
+    color: var(--ink-faint);
+    padding: 6px 10px;
+  }
+
+  /* List */
+  .list {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink-faint);
+  }
+  .empty-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+  .empty-text {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 17px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: opacity 0.2s ease;
+    animation: slideIn 0.25s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card.visited { opacity: 0.55; }
+
+  .check {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--line-strong);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    transition: all 0.15s ease;
+    font-size: 14px;
+    color: transparent;
+  }
+  .check:active { transform: scale(0.9); }
+  .card.visited .check {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+  }
+
+  .card-body { flex: 1; min-width: 0; }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.3;
+    margin-bottom: 4px;
+    word-break: break-word;
+  }
+  .card.visited .card-title {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .where-tag {
+    font-size: 11px;
+    color: var(--ink-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .card-link {
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    word-break: break-all;
+  }
+  .card-link:hover { color: var(--accent); }
+
+  .card-notes {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+    font-style: italic;
+    font-family: 'Fraunces', serif;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .icon-btn {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: var(--ink-faint);
+    font-size: 16px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon-btn:hover { background: var(--bg-soft); color: var(--ink); }
+  .icon-btn:active { transform: scale(0.9); }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(42, 37, 32, 0.25);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease;
+  }
+  .fab:active { transform: scale(0.9); }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(42, 37, 32, 0.4);
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-backdrop.open { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--bg);
+    width: 100%;
+    max-width: 640px;
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--line-strong);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+
+  .modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 18px;
+    font-style: italic;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  input[type="text"], input[type="url"], select, textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--ink);
+    -webkit-appearance: none;
+    transition: border-color 0.15s ease;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--ink);
+  }
+  textarea { resize: none; min-height: 60px; font-family: inherit; }
+
+  .segmented {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--bg-soft);
+    padding: 3px;
+    border-radius: 10px;
+    gap: 0;
+  }
+  .seg {
+    background: transparent;
+    border: none;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .seg.active {
+    background: var(--bg-card);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .btn {
+    flex: 1;
+    padding: 14px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--ink); color: var(--bg); }
+  .btn-secondary { background: var(--bg-soft); color: var(--ink); }
+  .btn-danger { background: transparent; color: #dc2626; border: 1px solid #fecaca; }
+
+  /* Category manager */
+  .cat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--bg-card);
+    border-radius: 10px;
+    margin-bottom: 6px;
+  }
+  .cat-name { flex: 1; font-size: 14px; }
+  .cat-count { font-size: 11px; color: var(--ink-faint); }
+  .add-cat-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .add-cat-row input { flex: 1; }
+  .add-cat-row button {
+    padding: 0 16px;
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  /* Setup banner */
+  .setup-banner {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    padding: 14px 16px;
+    margin: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .setup-banner strong { display: block; margin-bottom: 4px; }
+  .setup-banner code {
+    font-family: ui-monospace, monospace;
+    background: rgba(146, 64, 14, 0.1);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+
+  /* Menu button */
+  .menu-btn {
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    color: var(--ink-soft);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .menu-btn:active { transform: scale(0.95); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>Our places</h1>
+    <button class="menu-btn" id="menu-btn" aria-label="Menu">⚙</button>
+  </div>
+  <div class="stats"><span class="sync-dot" id="sync-dot"></span><span id="stats-text">Connecting…</span></div>
+</header>
+
+<div id="setup-banner" class="setup-banner" style="display: none;">
+  <strong>⚙️ First-time setup needed</strong>
+  Open this file in a text editor and paste your Firebase config near the bottom (look for <code>FIREBASE_CONFIG</code>). Until then, your data is saved locally on this device only.
+</div>
+
+<div class="filters">
+  <div class="filter-row" id="where-filters"></div>
+  <div class="filter-row" id="status-filters"></div>
+  <div class="filter-row" id="cat-filters"></div>
+</div>
+
+<div class="list" id="list"></div>
+
+<button class="fab" id="fab" aria-label="Add place">+</button>
+
+<!-- Add/Edit Modal -->
+<div class="modal-backdrop" id="form-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="form-title">New place</div>
+
+    <div class="field">
+      <label class="field-label">Place name</label>
+      <input type="text" id="f-name" placeholder="e.g. Bukchon Hanok Village" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Where</label>
+      <div class="segmented" id="f-where-seg">
+        <button type="button" class="seg active" data-val="Korea">🇰🇷 Korea</button>
+        <button type="button" class="seg" data-val="Abroad">✈️ Abroad</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Category</label>
+      <select id="f-category"></select>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Link (optional)</label>
+      <input type="url" id="f-link" placeholder="Google Maps, Instagram, etc." autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Notes (optional)</label>
+      <textarea id="f-notes" placeholder="Anything to remember..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
+      <button class="btn btn-primary" id="save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Menu Modal -->
+<div class="modal-backdrop" id="menu-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Manage categories</div>
+    <div id="cat-list"></div>
+    <div class="add-cat-row">
+      <input type="text" id="new-cat" placeholder="New category name">
+      <button id="add-cat-btn">Add</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="close-menu-btn">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK (compat for simplicity) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+// ============================================================
+// 🔥 FIREBASE CONFIG — paste your config here
+// ============================================================
+// 1. Go to https://console.firebase.google.com/ and create a project (free)
+// 2. Add a Web app, copy the config object
+// 3. Enable "Realtime Database" → start in TEST MODE
+// 4. Paste the values below (replace the empty strings)
+// ============================================================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDP-UVnQwqRUoxSXQuQSbsuNTjnpn6El7Q",
+  authDomain: "places-3bd18.firebaseapp.com",
+  databaseURL: "https://places-3bd18-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "places-3bd18",
+  storageBucket: "places-3bd18.firebasestorage.app",
+  messagingSenderId: "254208007298",
+  appId: "1:254208007298:web:a939e12015333b6d9be89b"
+};
+
+// Optional: change this to anything you and your friend agree on.
+// Acts as a simple shared "room" — both must use the same value.
+const ROOM_ID = "our-places";
+// ============================================================
+
+const DEFAULT_CATEGORIES = ['Food', 'Tour', 'Cafe', 'Shopping', 'Nature'];
+
+const state = {
+  places: {},
+  categories: DEFAULT_CATEGORIES.slice(),
+  filters: { where: 'All', status: 'All', category: 'All' },
+  editingId: null,
+  useFirebase: false,
+  db: null,
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// ---------- Storage layer ----------
+function initFirebase() {
+  if (!FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.databaseURL) {
+    $('setup-banner').style.display = 'block';
+    $('sync-dot').className = 'sync-dot';
+    $('stats-text').textContent = 'Local only';
+    loadFromLocal();
+    return false;
+  }
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    state.db = firebase.database();
+    state.useFirebase = true;
+
+    state.db.ref(`rooms/${ROOM_ID}/places`).on('value', snap => {
+      state.places = snap.val() || {};
+      $('sync-dot').className = 'sync-dot connected';
+      updateStats();
+      renderList();
+    }, err => {
+      console.error(err);
+      $('sync-dot').className = 'sync-dot error';
+      $('stats-text').textContent = 'Sync error — check Firebase rules';
+    });
+
+    state.db.ref(`rooms/${ROOM_ID}/categories`).on('value', snap => {
+      const cats = snap.val();
+      if (cats && Array.isArray(cats) && cats.length) {
+        state.categories = cats;
+      } else if (cats === null) {
+        state.db.ref(`rooms/${ROOM_ID}/categories`).set(DEFAULT_CATEGORIES);
+      }
+      renderFilters();
+      refreshCatSelect();
+    });
+
+    return true;
+  } catch (e) {
+    console.error('Firebase init failed:', e);
+    $('setup-banner').style.display = 'block';
+    loadFromLocal();
+    return false;
+  }
+}
+
+function loadFromLocal() {
+  try {
+    const placesRaw = localStorage.getItem('places_data');
+    const catsRaw = localStorage.getItem('places_categories');
+    state.places = placesRaw ? JSON.parse(placesRaw) : {};
+    state.categories = catsRaw ? JSON.parse(catsRaw) : DEFAULT_CATEGORIES.slice();
+  } catch {
+    state.places = {};
+    state.categories = DEFAULT_CATEGORIES.slice();
+  }
+  renderAll();
+}
+
+function saveLocal() {
+  if (state.useFirebase) return;
+  try {
+    localStorage.setItem('places_data', JSON.stringify(state.places));
+    localStorage.setItem('places_categories', JSON.stringify(state.categories));
+  } catch {}
+}
+
+async function putPlace(id, place) {
+  state.places[id] = place;
+  if (state.useFirebase) {
+    await state.db.ref(`rooms/${ROOM_ID}/places/${id}`).set(place);
+  } else {
+    saveLocal();
+    renderList();
+    updateStats();
+  }
+}
+
+async function removePlace(id) {
+  delete state.places[id];
+  if (state.useFirebase) {
+    await state.db.ref(`rooms/${ROOM_ID}/places/${id}`).remove();
+  } else {
+    saveLocal();
+    renderList();
+    updateStats();
+  }
+}
+
+async function putCategories(cats) {
+  state.categories = cats;
+  if (state.useFirebase) {
+    await state.db.ref(`rooms/${ROOM_ID}/categories`).set(cats);
+  } else {
+    saveLocal();
+    renderFilters();
+    refreshCatSelect();
+    renderCatList();
+  }
+}
+
+// ---------- Render ----------
+function updateStats() {
+  const list = Object.values(state.places);
+  const total = list.length;
+  const visited = list.filter(p => p.visited).length;
+  const prefix = state.useFirebase ? 'Synced' : 'Local only';
+  $('stats-text').textContent = total === 0 ? `${prefix} · no places yet` : `${prefix} · ${visited} visited / ${total} total`;
+}
+
+function chip(label, active, onClick, extraClass = '') {
+  const b = document.createElement('button');
+  b.className = 'chip ' + (active ? 'active ' : '') + extraClass;
+  b.textContent = label;
+  b.addEventListener('click', onClick);
+  return b;
+}
+
+function renderFilters() {
+  const w = $('where-filters'); w.innerHTML = '';
+  ['All', 'Korea', 'Abroad'].forEach(v => w.appendChild(chip(v, state.filters.where === v, () => { state.filters.where = v; renderFilters(); renderList(); })));
+
+  const s = $('status-filters'); s.innerHTML = '';
+  ['All', 'To visit', 'Visited'].forEach(v => s.appendChild(chip(v, state.filters.status === v, () => { state.filters.status = v; renderFilters(); renderList(); })));
+
+  const c = $('cat-filters'); c.innerHTML = '';
+  ['All', ...state.categories].forEach(v => c.appendChild(chip(v, state.filters.category === v, () => { state.filters.category = v; renderFilters(); renderList(); })));
+}
+
+function renderList() {
+  const list = $('list');
+  list.innerHTML = '';
+
+  let items = Object.entries(state.places).map(([id, p]) => ({ ...p, id }));
+  items = items.filter(p => {
+    if (state.filters.where !== 'All' && p.where !== state.filters.where) return false;
+    if (state.filters.status === 'Visited' && !p.visited) return false;
+    if (state.filters.status === 'To visit' && p.visited) return false;
+    if (state.filters.category !== 'All' && p.category !== state.filters.category) return false;
+    return true;
+  }).sort((a, b) => (a.visited - b.visited) || ((b.createdAt || 0) - (a.createdAt || 0)));
+
+  if (items.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.innerHTML = `<div class="empty-icon">🗺️</div><div class="empty-text">${Object.keys(state.places).length === 0 ? 'No places yet. Tap + to start dreaming.' : 'Nothing matches these filters.'}</div>`;
+    list.appendChild(empty);
+    return;
+  }
+
+  items.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'card' + (p.visited ? ' visited' : '');
+
+    const check = document.createElement('button');
+    check.className = 'check';
+    check.innerHTML = '✓';
+    check.setAttribute('aria-label', p.visited ? 'Mark as not visited' : 'Mark as visited');
+    check.addEventListener('click', () => toggleVisited(p.id));
+
+    const body = document.createElement('div');
+    body.className = 'card-body';
+    const whereIcon = p.where === 'Korea' ? '🇰🇷' : '✈️';
+    body.innerHTML = `
+      <div class="card-title">${esc(p.name)}</div>
+      <div class="card-meta">
+        <span class="tag">${esc(p.category || 'Other')}</span>
+        <span class="where-tag">${whereIcon} ${esc(p.where)}</span>
+      </div>
+      ${p.notes ? `<div class="card-notes">"${esc(p.notes)}"</div>` : ''}
+      ${p.link ? `<a class="card-link" href="${esc(p.link)}" target="_blank" rel="noopener">↗ ${esc(p.link.length > 50 ? p.link.slice(0, 47) + '…' : p.link)}</a>` : ''}
+    `;
+
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'icon-btn';
+    editBtn.innerHTML = '✎';
+    editBtn.setAttribute('aria-label', 'Edit');
+    editBtn.addEventListener('click', () => openEdit(p));
+    const delBtn = document.createElement('button');
+    delBtn.className = 'icon-btn';
+    delBtn.innerHTML = '🗑';
+    delBtn.setAttribute('aria-label', 'Delete');
+    delBtn.addEventListener('click', () => {
+      if (confirm(`Delete "${p.name}"?`)) removePlace(p.id);
+    });
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+
+    card.appendChild(check);
+    card.appendChild(body);
+    card.appendChild(actions);
+    list.appendChild(card);
+  });
+}
+
+function renderAll() {
+  renderFilters();
+  renderList();
+  updateStats();
+  refreshCatSelect();
+}
+
+function refreshCatSelect() {
+  const sel = $('f-category');
+  const current = sel.value;
+  sel.innerHTML = '';
+  state.categories.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+  if (state.categories.includes(current)) sel.value = current;
+}
+
+// ---------- Form modal ----------
+function openAdd() {
+  state.editingId = null;
+  $('form-title').textContent = 'New place';
+  $('f-name').value = '';
+  $('f-link').value = '';
+  $('f-notes').value = '';
+  setSegmented('f-where-seg', 'Korea');
+  refreshCatSelect();
+  $('f-category').value = state.categories[0] || '';
+  $('form-modal').classList.add('open');
+  setTimeout(() => $('f-name').focus(), 100);
+}
+
+function openEdit(p) {
+  state.editingId = p.id;
+  $('form-title').textContent = 'Edit place';
+  $('f-name').value = p.name;
+  $('f-link').value = p.link || '';
+  $('f-notes').value = p.notes || '';
+  setSegmented('f-where-seg', p.where);
+  refreshCatSelect();
+  if (!state.categories.includes(p.category)) {
+    const opt = document.createElement('option');
+    opt.value = p.category; opt.textContent = p.category;
+    $('f-category').appendChild(opt);
+  }
+  $('f-category').value = p.category;
+  $('form-modal').classList.add('open');
+}
+
+function setSegmented(id, val) {
+  const segs = $(id).querySelectorAll('.seg');
+  segs.forEach(s => s.classList.toggle('active', s.dataset.val === val));
+}
+function getSegmented(id) {
+  const active = $(id).querySelector('.seg.active');
+  return active ? active.dataset.val : null;
+}
+
+async function savePlace() {
+  const name = $('f-name').value.trim();
+  if (!name) { $('f-name').focus(); return; }
+  const where = getSegmented('f-where-seg') || 'Korea';
+  const category = $('f-category').value || state.categories[0] || 'Other';
+  const link = $('f-link').value.trim();
+  const notes = $('f-notes').value.trim();
+
+  let id, place;
+  if (state.editingId) {
+    id = state.editingId;
+    place = { ...state.places[id], name, where, category, link, notes };
+  } else {
+    id = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    place = { name, where, category, link, notes, visited: false, createdAt: Date.now(), visitedAt: null };
+  }
+  await putPlace(id, place);
+  $('form-modal').classList.remove('open');
+  state.editingId = null;
+}
+
+async function toggleVisited(id) {
+  const p = state.places[id];
+  if (!p) return;
+  const updated = { ...p, visited: !p.visited, visitedAt: !p.visited ? Date.now() : null };
+  await putPlace(id, updated);
+}
+
+// ---------- Category manager ----------
+function renderCatList() {
+  const list = $('cat-list');
+  list.innerHTML = '';
+  state.categories.forEach(c => {
+    const count = Object.values(state.places).filter(p => p.category === c).length;
+    const row = document.createElement('div');
+    row.className = 'cat-row';
+    row.innerHTML = `<span class="cat-name">${esc(c)}</span><span class="cat-count">${count} place${count === 1 ? '' : 's'}</span>`;
+    const del = document.createElement('button');
+    del.className = 'icon-btn';
+    del.innerHTML = '🗑';
+    del.setAttribute('aria-label', 'Delete category');
+    del.addEventListener('click', () => deleteCategory(c, count));
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
+
+async function deleteCategory(name, count) {
+  if (count > 0) {
+    if (!confirm(`"${name}" has ${count} place${count === 1 ? '' : 's'}. They'll be moved to "Other". Continue?`)) return;
+    let cats = state.categories.slice();
+    if (!cats.includes('Other')) cats.push('Other');
+    cats = cats.filter(c => c !== name);
+    // update places
+    for (const [id, p] of Object.entries(state.places)) {
+      if (p.category === name) {
+        await putPlace(id, { ...p, category: 'Other' });
+      }
+    }
+    await putCategories(cats);
+  } else {
+    if (!confirm(`Delete category "${name}"?`)) return;
+    await putCategories(state.categories.filter(c => c !== name));
+  }
+  if (state.filters.category === name) {
+    state.filters.category = 'All';
+    renderFilters();
+    renderList();
+  }
+  renderCatList();
+}
+
+async function addCategory() {
+  const input = $('new-cat');
+  const name = input.value.trim();
+  if (!name) return;
+  if (state.categories.includes(name)) { alert('That category already exists'); return; }
+  await putCategories([...state.categories, name]);
+  input.value = '';
+  renderCatList();
+}
+
+// ---------- Wire up ----------
+$('fab').addEventListener('click', openAdd);
+$('cancel-btn').addEventListener('click', () => { $('form-modal').classList.remove('open'); state.editingId = null; });
+$('save-btn').addEventListener('click', savePlace);
+$('menu-btn').addEventListener('click', () => { renderCatList(); $('menu-modal').classList.add('open'); });
+$('close-menu-btn').addEventListener('click', () => { $('menu-modal').classList.remove('open'); });
+$('add-cat-btn').addEventListener('click', addCategory);
+$('new-cat').addEventListener('keydown', e => { if (e.key === 'Enter') addCategory(); });
+$('f-name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); savePlace(); } });
+
+// Segmented controls
+document.querySelectorAll('.segmented').forEach(seg => {
+  seg.querySelectorAll('.seg').forEach(btn => {
+    btn.addEventListener('click', () => {
+      seg.querySelectorAll('.seg').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+});
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(bd => {
+  bd.addEventListener('click', e => {
+    if (e.target === bd) bd.classList.remove('open');
+  });
+});
+
+// Init
+const usingFirebase = initFirebase();
+if (!usingFirebase) {
+  renderAll();
+}
+</script>
+</body>
+</html>
