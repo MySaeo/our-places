@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f5f1e8'/%3E%3Ctext y='.9em' font-size='80' x='10'%3E📍%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -485,6 +485,171 @@
     justify-content: center;
   }
   .menu-btn:active { transform: scale(0.95); }
+
+  /* Photo upload */
+  .photo-upload {
+    border: 2px dashed var(--line-strong);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--bg-card);
+    transition: all 0.15s ease;
+    position: relative;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .photo-upload:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .photo-upload.has-photo {
+    padding: 0;
+    border: none;
+    overflow: hidden;
+    min-height: auto;
+  }
+  .photo-upload.has-photo img {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+  }
+  .photo-upload-icon { font-size: 28px; opacity: 0.5; }
+  .photo-upload-text { font-size: 13px; color: var(--ink-soft); }
+  .photo-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  .photo-upload input[type="file"] { display: none; }
+  .upload-progress {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--ink);
+  }
+
+  /* Thumbnail in card */
+  .card-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--bg-soft);
+  }
+
+  /* Polaroid */
+  .polaroid-stage {
+    position: fixed;
+    inset: 0;
+    background: rgba(42, 37, 32, 0.85);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    cursor: pointer;
+    padding: 20px;
+  }
+  .polaroid-stage.open { display: flex; }
+
+  .polaroid {
+    background: #fefefe;
+    padding: 14px 14px 50px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 8px 16px rgba(0,0,0,0.3);
+    max-width: 320px;
+    width: 100%;
+    transform: rotate(-3deg);
+    position: relative;
+  }
+  .polaroid img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    background: #2a2520;
+    display: block;
+  }
+  .polaroid-caption {
+    text-align: center;
+    margin-top: 12px;
+    font-family: 'Caveat', 'Fraunces', cursive;
+    font-size: 18px;
+    color: #2a2520;
+    font-style: italic;
+  }
+  .polaroid-caption .place-name {
+    font-weight: 600;
+    font-size: 20px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .polaroid-caption .visit-date {
+    font-size: 14px;
+    color: #6b6359;
+  }
+
+  /* Pull animation */
+  @keyframes polaroidPull {
+    0% {
+      transform: translateY(-120vh) rotate(-15deg) scale(0.6);
+      opacity: 0;
+    }
+    50% {
+      transform: translateY(20px) rotate(8deg) scale(1.05);
+      opacity: 1;
+    }
+    70% {
+      transform: translateY(-10px) rotate(-5deg) scale(1);
+    }
+    85% {
+      transform: translateY(5px) rotate(-2deg) scale(1);
+    }
+    100% {
+      transform: translateY(0) rotate(-3deg) scale(1);
+    }
+  }
+  .polaroid.animating {
+    animation: polaroidPull 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  /* Date field */
+  input[type="date"] {
+    width: 100%;
+    font-family: inherit;
+    font-size: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--ink);
+    -webkit-appearance: none;
+  }
 </style>
 </head>
 <body>
@@ -511,6 +676,17 @@
 <div class="list" id="list"></div>
 
 <button class="fab" id="fab" aria-label="Add place">+</button>
+
+<!-- Polaroid stage -->
+<div class="polaroid-stage" id="polaroid-stage">
+  <div class="polaroid" id="polaroid">
+    <img id="polaroid-img" alt="">
+    <div class="polaroid-caption">
+      <span class="place-name" id="polaroid-name"></span>
+      <span class="visit-date" id="polaroid-date"></span>
+    </div>
+  </div>
+</div>
 
 <!-- Lock screen -->
 <div class="modal-backdrop" id="lock-modal" style="display: flex; background: var(--bg);">
@@ -555,6 +731,20 @@
     <div class="field">
       <label class="field-label">Link (optional)</label>
       <input type="url" id="f-link" placeholder="Google Maps, Instagram, etc." autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label class="field-label" id="f-photo-label">Photo (optional)</label>
+      <div class="photo-upload" id="f-photo-upload">
+        <input type="file" id="f-photo-input" accept="image/*">
+        <div class="photo-upload-icon">📷</div>
+        <div class="photo-upload-text">Tap to add a photo</div>
+      </div>
+    </div>
+
+    <div class="field" id="f-visit-date-wrap" style="display: none;">
+      <label class="field-label">Visit date</label>
+      <input type="date" id="f-visit-date">
     </div>
 
     <div class="field">
@@ -613,12 +803,21 @@ const FIREBASE_CONFIG = {
 const ROOM_ID = "our-places";
 
 // ============================================================
+// 📸 CLOUDINARY — 이미지 업로드 설정
+// ============================================================
+const CLOUDINARY_CONFIG = {
+  cloudName: "dv0y6a76c",
+  uploadPreset: "our places"
+};
+// ============================================================
+
+// ============================================================
 // 🔐 PASSWORD — 비밀번호를 여기에 입력하세요
 // ============================================================
 // 친구분과 둘만 아는 비밀번호를 아래 따옴표 사이에 입력하세요.
 // 예: const SHARED_PASSWORD = "mySecret123";
 // ============================================================
-const SHARED_PASSWORD = "@tvxq1226";
+const SHARED_PASSWORD = "이곳에-비밀번호를-입력하세요";
 // ============================================================
 // ============================================================
 
@@ -631,6 +830,8 @@ const state = {
   editingId: null,
   useFirebase: false,
   db: null,
+  formPhotoUrl: null,
+  uploading: false,
 };
 
 const $ = id => document.getElementById(id);
@@ -793,16 +994,32 @@ function renderList() {
     check.className = 'check';
     check.innerHTML = '✓';
     check.setAttribute('aria-label', p.visited ? 'Mark as not visited' : 'Mark as visited');
-    check.addEventListener('click', () => toggleVisited(p.id));
+    check.addEventListener('click', e => { e.stopPropagation(); toggleVisited(p.id); });
+
+    // Thumbnail if photo exists
+    let thumb = null;
+    if (p.photoUrl) {
+      thumb = document.createElement('img');
+      thumb.className = 'card-thumb';
+      thumb.src = p.photoUrl;
+      thumb.alt = '';
+      thumb.loading = 'lazy';
+      if (p.visited) {
+        thumb.style.cursor = 'pointer';
+        thumb.addEventListener('click', e => { e.stopPropagation(); showPolaroid(p); });
+      }
+    }
 
     const body = document.createElement('div');
     body.className = 'card-body';
     const whereIcon = p.where === 'Korea' ? '🇰🇷' : '✈️';
+    const visitedDateStr = p.visited && p.visitDate ? formatDate(p.visitDate) : '';
     body.innerHTML = `
       <div class="card-title">${esc(p.name)}</div>
       <div class="card-meta">
         <span class="tag">${esc(p.category || 'Other')}</span>
         <span class="where-tag">${whereIcon} ${esc(p.where)}</span>
+        ${visitedDateStr ? `<span class="where-tag">📅 ${esc(visitedDateStr)}</span>` : ''}
       </div>
       ${p.notes ? `<div class="card-notes">"${esc(p.notes)}"</div>` : ''}
       ${p.link ? `<a class="card-link" href="${esc(p.link)}" target="_blank" rel="noopener">↗ ${esc(p.link.length > 50 ? p.link.slice(0, 47) + '…' : p.link)}</a>` : ''}
@@ -814,22 +1031,44 @@ function renderList() {
     editBtn.className = 'icon-btn';
     editBtn.innerHTML = '✎';
     editBtn.setAttribute('aria-label', 'Edit');
-    editBtn.addEventListener('click', () => openEdit(p));
+    editBtn.addEventListener('click', e => { e.stopPropagation(); openEdit(p); });
     const delBtn = document.createElement('button');
     delBtn.className = 'icon-btn';
     delBtn.innerHTML = '🗑';
     delBtn.setAttribute('aria-label', 'Delete');
-    delBtn.addEventListener('click', () => {
+    delBtn.addEventListener('click', e => {
+      e.stopPropagation();
       if (confirm(`Delete "${p.name}"?`)) removePlace(p.id);
     });
     actions.appendChild(editBtn);
     actions.appendChild(delBtn);
 
     card.appendChild(check);
+    if (thumb) card.appendChild(thumb);
     card.appendChild(body);
     card.appendChild(actions);
     list.appendChild(card);
   });
+}
+
+function formatDate(timestamp) {
+  if (!timestamp) return '';
+  const d = new Date(timestamp);
+  if (isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}.${m}.${day}`;
+}
+
+function dateToInputValue(timestamp) {
+  if (!timestamp) return '';
+  const d = new Date(timestamp);
+  if (isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function renderAll() {
@@ -852,15 +1091,105 @@ function refreshCatSelect() {
 }
 
 // ---------- Form modal ----------
+function resetPhotoUpload() {
+  state.formPhotoUrl = null;
+  const wrap = $('f-photo-upload');
+  wrap.classList.remove('has-photo');
+  wrap.innerHTML = `
+    <input type="file" id="f-photo-input" accept="image/*">
+    <div class="photo-upload-icon">📷</div>
+    <div class="photo-upload-text">Tap to add a photo</div>
+  `;
+  bindFileInput();
+}
+
+function showPhotoPreview(url) {
+  state.formPhotoUrl = url;
+  const wrap = $('f-photo-upload');
+  wrap.classList.add('has-photo');
+  wrap.innerHTML = `
+    <img src="${esc(url)}" alt="">
+    <button type="button" class="photo-remove" id="f-photo-remove" aria-label="Remove">×</button>
+  `;
+  $('f-photo-remove').addEventListener('click', e => {
+    e.stopPropagation();
+    resetPhotoUpload();
+  });
+}
+
+function bindFileInput() {
+  const input = $('f-photo-input');
+  if (!input) return;
+  input.addEventListener('change', async e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    await uploadPhoto(file);
+  });
+}
+
+function wirePhotoInput() {
+  // Wrap-level click delegation (attached once)
+  const wrap = $('f-photo-upload');
+  wrap.addEventListener('click', e => {
+    if (state.uploading) return;
+    if (e.target.tagName === 'BUTTON') return;
+    if (wrap.classList.contains('has-photo')) return; // Don't reopen when photo exists
+    const input = $('f-photo-input');
+    if (input) input.click();
+  });
+  bindFileInput();
+}
+
+async function uploadPhoto(file) {
+  if (state.uploading) return;
+  state.uploading = true;
+
+  // Show upload progress
+  const wrap = $('f-photo-upload');
+  const progress = document.createElement('div');
+  progress.className = 'upload-progress';
+  progress.textContent = 'Uploading…';
+  wrap.appendChild(progress);
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
+      { method: 'POST', body: formData }
+    );
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error('Upload failed: ' + errText);
+    }
+
+    const data = await res.json();
+    showPhotoPreview(data.secure_url);
+  } catch (err) {
+    console.error(err);
+    alert('사진 업로드 실패: ' + err.message);
+    progress.remove();
+  } finally {
+    state.uploading = false;
+  }
+}
+
 function openAdd() {
   state.editingId = null;
   $('form-title').textContent = 'New place';
   $('f-name').value = '';
   $('f-link').value = '';
   $('f-notes').value = '';
+  $('f-visit-date').value = '';
+  $('f-visit-date-wrap').style.display = 'none';
+  $('f-photo-label').textContent = 'Photo (optional)';
   setSegmented('f-where-seg', 'Korea');
   refreshCatSelect();
   $('f-category').value = state.categories[0] || '';
+  resetPhotoUpload();
   $('form-modal').classList.add('open');
   setTimeout(() => $('f-name').focus(), 100);
 }
@@ -879,6 +1208,24 @@ function openEdit(p) {
     $('f-category').appendChild(opt);
   }
   $('f-category').value = p.category;
+
+  // Photo
+  if (p.photoUrl) {
+    showPhotoPreview(p.photoUrl);
+  } else {
+    resetPhotoUpload();
+  }
+
+  // Visit date (only show for visited places)
+  if (p.visited) {
+    $('f-visit-date-wrap').style.display = 'block';
+    $('f-visit-date').value = dateToInputValue(p.visitDate || p.visitedAt || Date.now());
+    $('f-photo-label').textContent = '⭐ Best cut photo';
+  } else {
+    $('f-visit-date-wrap').style.display = 'none';
+    $('f-photo-label').textContent = 'Photo (optional)';
+  }
+
   $('form-modal').classList.add('open');
 }
 
@@ -894,18 +1241,28 @@ function getSegmented(id) {
 async function savePlace() {
   const name = $('f-name').value.trim();
   if (!name) { $('f-name').focus(); return; }
+  if (state.uploading) { alert('사진 업로드 중이에요. 잠시만 기다려주세요!'); return; }
   const where = getSegmented('f-where-seg') || 'Korea';
   const category = $('f-category').value || state.categories[0] || 'Other';
   const link = $('f-link').value.trim();
   const notes = $('f-notes').value.trim();
+  const photoUrl = state.formPhotoUrl || null;
 
   let id, place;
   if (state.editingId) {
     id = state.editingId;
-    place = { ...state.places[id], name, where, category, link, notes };
+    const existing = state.places[id];
+    place = { ...existing, name, where, category, link, notes, photoUrl };
+    // Save visit date if visited
+    if (existing.visited) {
+      const dateVal = $('f-visit-date').value;
+      if (dateVal) {
+        place.visitDate = new Date(dateVal).getTime();
+      }
+    }
   } else {
     id = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-    place = { name, where, category, link, notes, visited: false, createdAt: Date.now(), visitedAt: null };
+    place = { name, where, category, link, notes, photoUrl, visited: false, createdAt: Date.now(), visitedAt: null, visitDate: null };
   }
   await putPlace(id, place);
   $('form-modal').classList.remove('open');
@@ -915,8 +1272,51 @@ async function savePlace() {
 async function toggleVisited(id) {
   const p = state.places[id];
   if (!p) return;
-  const updated = { ...p, visited: !p.visited, visitedAt: !p.visited ? Date.now() : null };
+  const becomingVisited = !p.visited;
+  const updated = {
+    ...p,
+    visited: becomingVisited,
+    visitedAt: becomingVisited ? Date.now() : null,
+    visitDate: becomingVisited ? (p.visitDate || Date.now()) : null
+  };
   await putPlace(id, updated);
+
+  // Show polaroid animation if visited and has photo
+  if (becomingVisited && updated.photoUrl) {
+    setTimeout(() => showPolaroid(updated), 200);
+  } else if (becomingVisited && !updated.photoUrl) {
+    // Prompt to add a best cut
+    setTimeout(() => {
+      if (confirm(`"${p.name}" 방문 기록 완료! 🎉\nBest cut 사진을 추가할까요?`)) {
+        openEdit(updated);
+      }
+    }, 300);
+  }
+}
+
+// ---------- Polaroid stage ----------
+function showPolaroid(place) {
+  if (!place.photoUrl) return;
+  const stage = $('polaroid-stage');
+  const polaroid = $('polaroid');
+  const img = $('polaroid-img');
+  const name = $('polaroid-name');
+  const date = $('polaroid-date');
+
+  img.src = place.photoUrl;
+  name.textContent = place.name;
+  date.textContent = place.visitDate ? formatDate(place.visitDate) : (place.visitedAt ? formatDate(place.visitedAt) : '');
+
+  // Reset animation
+  polaroid.classList.remove('animating');
+  stage.classList.add('open');
+  // Trigger reflow to restart animation
+  void polaroid.offsetWidth;
+  polaroid.classList.add('animating');
+}
+
+function hidePolaroid() {
+  $('polaroid-stage').classList.remove('open');
 }
 
 // ---------- Category manager ----------
@@ -982,6 +1382,12 @@ $('close-menu-btn').addEventListener('click', () => { $('menu-modal').classList.
 $('add-cat-btn').addEventListener('click', addCategory);
 $('new-cat').addEventListener('keydown', e => { if (e.key === 'Enter') addCategory(); });
 $('f-name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); savePlace(); } });
+
+// Polaroid stage close
+$('polaroid-stage').addEventListener('click', hidePolaroid);
+
+// Initial photo input wiring (re-wired on every reset)
+wirePhotoInput();
 
 // Segmented controls
 document.querySelectorAll('.segmented').forEach(seg => {
