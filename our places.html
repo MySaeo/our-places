@@ -563,6 +563,26 @@
     background: var(--bg-soft);
   }
 
+  /* Photo zoom (simple, no animation) */
+  .photo-zoom {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 20px;
+  }
+  .photo-zoom.open { display: flex; }
+  .photo-zoom img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+  }
+
   /* Polaroid */
   .polaroid-stage {
     position: fixed;
@@ -676,6 +696,11 @@
 <div class="list" id="list"></div>
 
 <button class="fab" id="fab" aria-label="Add place">+</button>
+
+<!-- Photo zoom (for to-visit) -->
+<div class="photo-zoom" id="photo-zoom">
+  <img id="photo-zoom-img" alt="">
+</div>
 
 <!-- Polaroid stage -->
 <div class="polaroid-stage" id="polaroid-stage">
@@ -1004,9 +1029,11 @@ function renderList() {
       thumb.src = p.photoUrl;
       thumb.alt = '';
       thumb.loading = 'lazy';
+      thumb.style.cursor = 'pointer';
       if (p.visited) {
-        thumb.style.cursor = 'pointer';
         thumb.addEventListener('click', e => { e.stopPropagation(); showPolaroid(p); });
+      } else {
+        thumb.addEventListener('click', e => { e.stopPropagation(); showPhotoZoom(p.photoUrl); });
       }
     }
 
@@ -1319,6 +1346,18 @@ function hidePolaroid() {
   $('polaroid-stage').classList.remove('open');
 }
 
+// ---------- Photo zoom (for to-visit) ----------
+function showPhotoZoom(url) {
+  if (!url) return;
+  $('photo-zoom-img').src = url;
+  $('photo-zoom').classList.add('open');
+}
+
+function hidePhotoZoom() {
+  $('photo-zoom').classList.remove('open');
+  $('photo-zoom-img').src = '';
+}
+
 // ---------- Category manager ----------
 function renderCatList() {
   const list = $('cat-list');
@@ -1385,6 +1424,9 @@ $('f-name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preven
 
 // Polaroid stage close
 $('polaroid-stage').addEventListener('click', hidePolaroid);
+
+// Photo zoom close (탭하면 닫힘)
+$('photo-zoom').addEventListener('click', hidePhotoZoom);
 
 // Initial photo input wiring (re-wired on every reset)
 wirePhotoInput();
